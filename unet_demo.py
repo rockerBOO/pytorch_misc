@@ -11,17 +11,17 @@ import torch.nn.functional as F
 
 
 class BaseConv(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size, padding,
-                 stride):
+    def __init__(self, in_channels, out_channels, kernel_size, stride,
+                 padding):
         super(BaseConv, self).__init__()
 
         self.act = nn.ReLU()
 
-        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size, padding,
-                               stride)
+        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size, stride,
+                               padding)
 
         self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size,
-                               padding, stride)
+                               stride, padding)
 
     def forward(self, x):
         x = self.act(self.conv1(x))
@@ -30,13 +30,13 @@ class BaseConv(nn.Module):
 
 
 class DownConv(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size, padding,
-                 stride):
+    def __init__(self, in_channels, out_channels, kernel_size, stride,
+                 padding):
         super(DownConv, self).__init__()
 
         self.pool1 = nn.MaxPool2d(kernel_size=2)
         self.conv_block = BaseConv(in_channels, out_channels, kernel_size,
-                                   padding, stride)
+                                   stride, padding)
 
     def forward(self, x):
         x = self.pool1(x)
@@ -46,7 +46,7 @@ class DownConv(nn.Module):
 
 class UpConv(nn.Module):
     def __init__(self, in_channels, in_channels_skip, out_channels,
-                 kernel_size, padding, stride):
+                 kernel_size, stride, padding):
         super(UpConv, self).__init__()
 
         self.conv_trans1 = nn.ConvTranspose2d(
@@ -67,31 +67,31 @@ class UpConv(nn.Module):
 
 class UNet(nn.Module):
     def __init__(self, in_channels, out_channels, n_class, kernel_size,
-                 padding, stride):
+                 stride, padding):
         super(UNet, self).__init__()
 
         self.init_conv = BaseConv(in_channels, out_channels, kernel_size,
-                                  padding, stride)
+                                  stride, padding)
 
         self.down1 = DownConv(out_channels, 2 * out_channels, kernel_size,
-                              padding, stride)
+                              stride, padding)
 
         self.down2 = DownConv(2 * out_channels, 4 * out_channels, kernel_size,
-                              padding, stride)
+                              stride, padding)
 
         self.down3 = DownConv(4 * out_channels, 8 * out_channels, kernel_size,
-                              padding, stride)
+                              stride, padding)
 
         self.up3 = UpConv(8 * out_channels, 4 * out_channels, 4 * out_channels,
-                          kernel_size, padding, stride)
+                          kernel_size, stride, padding)
 
         self.up2 = UpConv(4 * out_channels, 2 * out_channels, 2 * out_channels,
-                          kernel_size, padding, stride)
+                          kernel_size, stride, padding)
 
         self.up1 = UpConv(2 * out_channels, out_channels, out_channels,
-                          kernel_size, padding, stride)
+                          kernel_size, stride, padding)
 
-        self.out = nn.Conv2d(out_channels, n_class, kernel_size, padding, stride)
+        self.out = nn.Conv2d(out_channels, n_class, kernel_size, stride, padding)
 
     def forward(self, x):
         # Encoder
